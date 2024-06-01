@@ -1,0 +1,232 @@
+
+Next steps:
+[5]
+21s
+from google.colab import drive
+drive.mount('/content/drive')
+
+Next steps:
+[6]
+0s
+# Define paths to the dataset
+train_dir = '/bin/Test'  # Update with your actual path
+test_dir = '/bin/train'    # Update with your actual path
+[7]
+0s
+import os
+print(len(os.listdir('/bin/train/Female')))
+print(len(os.listdir('/bin/train/Male')))
+print(len(os.listdir('/bin/Test/Female')))
+print(len(os.listdir('/bin/Test/Male')))
+697
+540
+40
+40
+[8]
+0s
+import tensorflow as tf
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
+
+# Create ImageDataGenerator for training set
+train_datagen = ImageDataGenerator(
+    rescale=1./255,
+    validation_split=0.2  # Split 20% of the images for validation
+)
+
+# Load and prepare training data
+train_data = train_datagen.flow_from_directory(
+    train_dir,
+    target_size=(256,256),
+    batch_size=32,
+    class_mode='binary',  # 'binary' for binary classification (male vs.female)
+    subset='training'  # Specify 'training' for the training set
+)
+
+# Create ImageDataGenerator for validation set
+validation_datagen = ImageDataGenerator(
+    rescale=1./255,
+    validation_split=0.2  # Note: Using the same validation split as in the training set
+)
+
+# Load and prepare validation data
+validation_data = validation_datagen.flow_from_directory(
+    train_dir,
+    target_size=(256,256),
+    batch_size=32,
+    class_mode='binary',
+    subset='validation'  # Specify 'validation' for the validation set
+)
+Found 64 images belonging to 3 classes.
+Found 16 images belonging to 3 classes.
+[9]
+0s
+from tensorflow import keras
+from keras import Sequential
+from keras.layers import Dense,Conv2D,MaxPooling2D,Flatten,BatchNormalization,UpSampling2D, Dropout
+[10]
+0s
+# create CNN model
+
+model = Sequential()
+
+model.add(Conv2D(32,kernel_size=(3,3),padding='valid',activation='relu',input_shape=(256,256,3)))  # 32 filters
+#model.add(BatchNormalization())  # added to reduce overfitting
+model.add(MaxPooling2D(pool_size=(2,2),strides=2,padding='valid'))
+
+model.add(Conv2D(64,kernel_size=(3,3),padding='valid',activation='relu'))
+#model.add(BatchNormalization())  # added to reduce overfitting
+model.add(MaxPooling2D(pool_size=(2,2),strides=2,padding='valid'))
+
+model.add(Conv2D(128,kernel_size=(3,3),padding='valid',activation='relu'))
+#model.add(BatchNormalization())  # added to reduce overfitting
+model.add(MaxPooling2D(pool_size=(2,2),strides=2,padding='valid'))
+
+model.add(Flatten())
+
+model.add(Dense(128,activation='relu')) #feature reduction
+#model.add(Dropout(0.1))  # added to reduce overfitting
+model.add(Dense(64,activation='relu'))
+#model.add(Dropout(0.1))  # added to reduce overfitting
+model.add(Dense(1,activation='sigmoid'))  #output layer
+[11]
+0s
+from keras.optimizers import Adam
+model.compile(optimizer=Adam(learning_rate=0.001),loss='binary_crossentropy',metrics=['accuracy']) #binary_crossentropy - binary classification
+[12]
+6m
+history = model.fit(train_data, epochs=30, validation_data=validation_data)
+Epoch 1/30
+2/2 [==============================] - 15s 7s/step - loss: -2.7387 - accuracy: 0.5000 - val_loss: -23.1214 - val_accuracy: 0.5000
+Epoch 2/30
+2/2 [==============================] - 12s 7s/step - loss: -44.2040 - accuracy: 0.5000 - val_loss: -131.9493 - val_accuracy: 0.5000
+Epoch 3/30
+2/2 [==============================] - 12s 7s/step - loss: -210.2962 - accuracy: 0.5000 - val_loss: -473.0484 - val_accuracy: 0.5000
+Epoch 4/30
+2/2 [==============================] - 11s 6s/step - loss: -672.7346 - accuracy: 0.5000 - val_loss: -1337.8003 - val_accuracy: 0.5000
+Epoch 5/30
+2/2 [==============================] - 12s 5s/step - loss: -1873.6226 - accuracy: 0.5000 - val_loss: -3256.6543 - val_accuracy: 0.5000
+Epoch 6/30
+2/2 [==============================] - 12s 6s/step - loss: -4437.4722 - accuracy: 0.5000 - val_loss: -7107.1587 - val_accuracy: 0.5000
+Epoch 7/30
+2/2 [==============================] - 12s 6s/step - loss: -9413.7656 - accuracy: 0.5000 - val_loss: -14336.7139 - val_accuracy: 0.5000
+Epoch 8/30
+2/2 [==============================] - 12s 7s/step - loss: -17830.5527 - accuracy: 0.5000 - val_loss: -27131.8223 - val_accuracy: 0.5000
+Epoch 9/30
+2/2 [==============================] - 12s 7s/step - loss: -34089.4922 - accuracy: 0.5000 - val_loss: -49060.1953 - val_accuracy: 0.5000
+Epoch 10/30
+2/2 [==============================] - 11s 6s/step - loss: -59198.0078 - accuracy: 0.5000 - val_loss: -84853.0625 - val_accuracy: 0.5000
+Epoch 11/30
+2/2 [==============================] - 12s 5s/step - loss: -101987.0547 - accuracy: 0.5000 - val_loss: -142138.1875 - val_accuracy: 0.5000
+Epoch 12/30
+2/2 [==============================] - 12s 7s/step - loss: -172066.2656 - accuracy: 0.5000 - val_loss: -231912.4375 - val_accuracy: 0.5000
+Epoch 13/30
+2/2 [==============================] - 12s 7s/step - loss: -279115.6875 - accuracy: 0.5000 - val_loss: -368774.0625 - val_accuracy: 0.5000
+Epoch 14/30
+2/2 [==============================] - 11s 6s/step - loss: -446734.6875 - accuracy: 0.5000 - val_loss: -572461.8750 - val_accuracy: 0.5000
+Epoch 15/30
+2/2 [==============================] - 11s 5s/step - loss: -695272.1250 - accuracy: 0.5000 - val_loss: -867449.2500 - val_accuracy: 0.5000
+Epoch 16/30
+2/2 [==============================] - 12s 5s/step - loss: -999915.7500 - accuracy: 0.5000 - val_loss: -1287955.7500 - val_accuracy: 0.5000
+Epoch 17/30
+2/2 [==============================] - 12s 6s/step - loss: -1490948.7500 - accuracy: 0.5000 - val_loss: -1889407.0000 - val_accuracy: 0.5000
+Epoch 18/30
+2/2 [==============================] - 12s 7s/step - loss: -2136661.5000 - accuracy: 0.5000 - val_loss: -2722837.5000 - val_accuracy: 0.5000
+Epoch 19/30
+2/2 [==============================] - 11s 6s/step - loss: -3170249.5000 - accuracy: 0.5000 - val_loss: -3882889.5000 - val_accuracy: 0.5000
+Epoch 20/30
+2/2 [==============================] - 11s 6s/step - loss: -4444325.5000 - accuracy: 0.5000 - val_loss: -5470115.0000 - val_accuracy: 0.5000
+Epoch 21/30
+2/2 [==============================] - 12s 6s/step - loss: -6180872.5000 - accuracy: 0.5000 - val_loss: -7606540.0000 - val_accuracy: 0.5000
+Epoch 22/30
+2/2 [==============================] - 12s 7s/step - loss: -8744054.0000 - accuracy: 0.5000 - val_loss: -10472342.0000 - val_accuracy: 0.5000
+Epoch 23/30
+2/2 [==============================] - 10s 6s/step - loss: -12002576.0000 - accuracy: 0.5000 - val_loss: -14270298.0000 - val_accuracy: 0.5000
+Epoch 24/30
+2/2 [==============================] - 13s 6s/step - loss: -15863219.0000 - accuracy: 0.5000 - val_loss: -19179624.0000 - val_accuracy: 0.5000
+Epoch 25/30
+2/2 [==============================] - 12s 6s/step - loss: -21794960.0000 - accuracy: 0.5000 - val_loss: -25571280.0000 - val_accuracy: 0.5000
+Epoch 26/30
+2/2 [==============================] - 12s 7s/step - loss: -28963042.0000 - accuracy: 0.5000 - val_loss: -33847964.0000 - val_accuracy: 0.5000
+Epoch 27/30
+2/2 [==============================] - 12s 7s/step - loss: -38129176.0000 - accuracy: 0.5000 - val_loss: -44473104.0000 - val_accuracy: 0.5000
+Epoch 28/30
+2/2 [==============================] - 11s 6s/step - loss: -49443316.0000 - accuracy: 0.5000 - val_loss: -57928272.0000 - val_accuracy: 0.5000
+Epoch 29/30
+2/2 [==============================] - 12s 5s/step - loss: -64924096.0000 - accuracy: 0.5000 - val_loss: -74920720.0000 - val_accuracy: 0.5000
+Epoch 30/30
+2/2 [==============================] - 12s 7s/step - loss: -84855656.0000 - accuracy: 0.5000 - val_loss: -96189984.0000 - val_accuracy: 0.5000
+[13]
+1s
+import matplotlib.pyplot as plt
+
+plt.plot(history.history['accuracy'],color='red',label='train')
+plt.plot(history.history['val_accuracy'],color='blue',label='validation')
+plt.legend()
+plt.show()
+
+[14]
+0s
+plt.plot(history.history['loss'],color='red',label='train')
+plt.plot(history.history['val_loss'],color='blue',label='validation')
+plt.legend()
+plt.show()
+
+[15]
+0s
+test_datagen = ImageDataGenerator(rescale=1./255)
+test_data = test_datagen.flow_from_directory(
+    test_dir,
+    target_size=(256,256),
+    batch_size=32,
+    class_mode='binary'
+)
+Found 1237 images belonging to 3 classes.
+[16]
+1m
+#predict the test data
+predictions = model.predict(test_data)
+print(predictions)
+39/39 [==============================] - 62s 2s/step
+[[1.]
+ [1.]
+ [1.]
+ ...
+ [1.]
+ [1.]
+ [1.]]
+[17]
+0s
+len(predictions)
+1237
+[18]
+1s
+from sklearn.metrics import confusion_matrix, classification_report
+
+# Assuming you have ground truth labels (true_labels) and predicted labels (predictions)
+true_labels = test_data.classes
+predicted_labels = (predictions > 0.5).astype(int)  # Adjust the threshold as needed
+
+# Calculate confusion matrix
+cm = confusion_matrix(true_labels, predicted_labels)
+
+# Print confusion matrix
+
+Confusion Matrix:
+[[697   0]
+ [540   0]]
+Classification Report:
+              precision    recall  f1-score   support
+
+           1       0.56      1.00      0.72       697
+           2       0.00      0.00      0.00       540
+
+    accuracy                           0.56      1237
+   macro avg       0.28      0.50      0.36      1237
+weighted avg       0.32      0.56      0.41      1237
+
+/usr/local/lib/python3.10/dist-packages/sklearn/metrics/_classification.py:1344: UndefinedMetricWarning: Precision and F-score are ill-defined and being set to 0.0 in labels with no predicted samples. Use `zero_division` parameter to control this behavior.
+  _warn_prf(average, modifier, msg_start, len(result))
+/usr/local/lib/python3.10/dist-packages/sklearn/metrics/_classification.py:1344: UndefinedMetricWarning: Precision and F-score are ill-defined and being set to 0.0 in labels with no predicted samples. Use `zero_division` parameter to control this behavior.
+  _warn_prf(average, modifier, msg_start, len(result))
+/usr/local/lib/python3.10/dist-packages/sklearn/metrics/_classification.py:1344: UndefinedMetricWarning: Precision and F-score are ill-defined and being set to 0.0 in labels with no predicted samples. Use `zero_division` parameter to control this behavior.
+  _warn_prf(average, modifier, msg_start, len(result))
